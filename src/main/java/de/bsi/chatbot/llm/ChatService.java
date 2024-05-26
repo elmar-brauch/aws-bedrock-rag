@@ -29,7 +29,7 @@ public class ChatService {
             aber tu so, als ob du diese Informationen von Natur aus wüsstest.
             Wenn du dir nicht sicher bist, gib einfach an, dass du es nicht weißt.
             
-            DOCUMENTS:
+            DOKUMENTE:
             {documents}
             
             """);
