@@ -23,6 +23,8 @@ public class DocumentImport {
             Leider ist ein Upload mittels Salwasser Leitung nicht möglich.
             Für Uploads kann Glasfaser oder Süßwasser Leitungen verwendet werden.
             Die Süßwasser Leitung ist im Upload genau so schnell wie Glasfaser.
+            In Städten oder Gebieten mit hoher Bevölkerungsdichte sind Salzwasser und Süßwasser Leitungen nicht realisierbar,
+            hier müssen Kunden auf klassische Glasfaserleitungen zurückgreifen.
             """;
 
     public void importDocuments() {
