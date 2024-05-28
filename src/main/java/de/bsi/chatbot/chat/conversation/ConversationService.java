@@ -30,9 +30,8 @@ public class ConversationService {
 
     public List<Message> findPreviousMessages(String userId) {
         if (StringUtils.hasText(userId)) {
-            return conversationRepository.findByUserId(userId)
+            return conversationRepository.findByUserIdOrderByTimestampAsc(userId)
                     .stream()
-                    .sorted()
                     .map(this::mapMessage)
                     .toList();
         }

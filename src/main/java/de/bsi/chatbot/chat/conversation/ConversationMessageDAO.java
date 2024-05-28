@@ -1,6 +1,5 @@
 package de.bsi.chatbot.chat.conversation;
 
-import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +12,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Entity
 @Table(indexes = @Index(name = "userid_index", columnList = "userId"))
-public class ConversationMessageDAO implements Comparable<ConversationMessageDAO>, Serializable {
+public class ConversationMessageDAO implements Serializable {
 
     @Id
     @GeneratedValue
@@ -33,11 +32,6 @@ public class ConversationMessageDAO implements Comparable<ConversationMessageDAO
         this.content = message.getContent();
         this.type = message.getMessageType();
         this.timestamp = System.currentTimeMillis();
-    }
-
-    @Override
-    public int compareTo(@Nonnull ConversationMessageDAO other) {
-        return Long.compare(timestamp, other.timestamp);
     }
 
 }
