@@ -11,7 +11,7 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(indexes = @Index(name = "userid_index", columnList = "userId"))
+@Table(indexes = @Index(name = "chatid_index", columnList = "chatId"))
 public class ConversationMessageDAO implements Serializable {
 
     @Id
@@ -20,15 +20,15 @@ public class ConversationMessageDAO implements Serializable {
 
     private long timestamp;
 
-    private String userId;
+    private String chatId;
 
     @Column(columnDefinition = "text")
     private String content;
 
     private MessageType type;
 
-    public ConversationMessageDAO(String userId, Message message) {
-        this.userId = userId;
+    public ConversationMessageDAO(String chatId, Message message) {
+        this.chatId = chatId;
         this.content = message.getContent();
         this.type = message.getMessageType();
         this.timestamp = System.currentTimeMillis();

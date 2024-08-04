@@ -3,9 +3,10 @@ package de.bsi.chatbot.chat.llm;
 import de.bsi.chatbot.chat.conversation.ConversationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.bedrock.titan.BedrockTitanChatClient;
+import org.springframework.ai.bedrock.titan.BedrockTitanChatModel;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,7 +24,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ChatService {
 
-    private final BedrockTitanChatClient chatClient;
+    private final BedrockTitanChatModel chatModel;
     private final VectorStore vectorStore;
     private final ConversationService conversationService;
 
@@ -39,28 +41,32 @@ public class ChatService {
             """);
 
     // Based on https://docs.spring.io/spring-ai/reference/api/clients/bedrock/bedrock-titan.html
-    public Message chat(String message, String userId) {
+    public Message chat(String message, String chatId) {
         var userMessage = new UserMessage(message);
-        var prompt = buildPrompt(userMessage, userId);
-        var awsResponse = chatClient.call(prompt);
-        var responseMessage = awsResponse.getResult().getOutput();
-        conversationService.persistMessage(userId, responseMessage);
-        return responseMessage;
+        var prompt = buildPrompt(userMessage, chatId);
+        var awsResponse = chatModel.call(prompt);
+        return extractAndPersistResponseMessage(awsResponse, chatId);
     }
 
-    private Prompt buildPrompt(UserMessage userMessage, String userId) {
-        var conversationMessages = new ArrayList<>(conversationService.findPreviousMessages(userId));
+    private Prompt buildPrompt(UserMessage userMessage, String chatId) {
+        return buildPromptForExistingConversation(userMessage, chatId)
+                .orElse(buildPromptForNewConversation(userMessage, chatId));
+    }
 
-        if (!conversationMessages.isEmpty()) {
-            log.debug("Continuing existing conversation of user {}", userId);
-            conversationMessages.add(userMessage);
-            conversationService.persistMessage(userId, userMessage);
-            return new Prompt(conversationMessages);
-        }
+    private Optional<Prompt> buildPromptForExistingConversation(UserMessage userMessage, String chatId) {
+        var conversationMessages = new ArrayList<>(conversationService.findPreviousMessages(chatId));
+        if (conversationMessages.isEmpty())
+            return Optional.empty();
+        log.debug("Continuing existing conversation {}", chatId);
+        conversationMessages.add(userMessage);
+        conversationService.persistMessage(chatId, userMessage);
+        return Optional.of(new Prompt(conversationMessages));
+    }
 
-        log.debug("Starting new conversation of user {}", userId);
+    private Prompt buildPromptForNewConversation(UserMessage userMessage, String chatId) {
+        log.debug("Starting new conversation {}", chatId);
         var conversationStartMessages = List.of(buildContextMessage(userMessage.getContent()), userMessage);
-        conversationService.persistMessages(userId, conversationStartMessages);
+        conversationService.persistMessages(chatId, conversationStartMessages);
         return new Prompt(conversationStartMessages);
     }
 
@@ -70,6 +76,12 @@ public class ChatService {
                 .map(Document::getContent)
                 .collect(Collectors.joining(System.lineSeparator()));
         return template.createMessage(Map.of("documents", similarDocuments));
+    }
+
+    private Message extractAndPersistResponseMessage(ChatResponse awsResponse, String chatId) {
+        var responseMessage = awsResponse.getResult().getOutput();
+        conversationService.persistMessage(chatId, responseMessage);
+        return responseMessage;
     }
 
 }

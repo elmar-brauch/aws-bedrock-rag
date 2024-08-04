@@ -1,5 +1,6 @@
 package de.bsi.chatbot.dataimport;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
@@ -27,14 +28,11 @@ public class DocumentImport {
             hier müssen Kunden auf klassische Glasfaserleitungen zurückgreifen.
             """;
 
-    public void importDocuments() {
+    @PostConstruct
+    private void importDocuments() {
         jdbcTemplate.update("DELETE FROM vector_store");
-
-        var vectorizedDocumentChunks = textSplitter.split(EXAMPLE_DOCUMENT, 800)
-                .stream()
-                .map(chunk -> new Document(chunk, Map.of("Add", "meta", "data", "here")))
-                .toList();
-        vectorStore.accept(vectorizedDocumentChunks);
+        var doc = new Document(EXAMPLE_DOCUMENT, Map.of("Add", "meta", "data", "here"));
+        vectorStore.accept(textSplitter.split(doc));
     }
 
 }

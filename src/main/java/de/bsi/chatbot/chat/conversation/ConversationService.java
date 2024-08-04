@@ -15,22 +15,22 @@ public class ConversationService {
 
     private final ConversationRepository conversationRepository;
 
-    public void persistMessages(String userId, List<Message> messages) {
+    public void persistMessages(String chatId, List<Message> messages) {
         if (messages != null)
-            messages.forEach(message -> persistMessage(userId, message));
+            messages.forEach(message -> persistMessage(chatId, message));
     }
 
-    public void persistMessage(String userId, Message message) {
-        if (StringUtils.hasText(userId) && message != null) {
-            conversationRepository.save(new ConversationMessageDAO(userId, message));
+    public void persistMessage(String chatId, Message message) {
+        if (StringUtils.hasText(chatId) && message != null) {
+            conversationRepository.save(new ConversationMessageDAO(chatId, message));
             log.debug("For user {} the following {} message is persisted: {}",
-                    userId, message.getMessageType(), message.getContent());
+                    chatId, message.getMessageType(), message.getContent());
         }
     }
 
-    public List<Message> findPreviousMessages(String userId) {
-        if (StringUtils.hasText(userId)) {
-            return conversationRepository.findByUserIdOrderByTimestampAsc(userId)
+    public List<Message> findPreviousMessages(String chatId) {
+        if (StringUtils.hasText(chatId)) {
+            return conversationRepository.findByChatIdOrderByTimestampAsc(chatId)
                     .stream()
                     .map(this::mapMessage)
                     .toList();

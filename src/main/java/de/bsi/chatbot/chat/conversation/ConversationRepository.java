@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface ConversationRepository extends JpaRepository<ConversationMessageDAO, Long> {
 
-    List<ConversationMessageDAO> findByUserIdOrderByTimestampAsc(String userId);
+    List<ConversationMessageDAO> findByChatIdOrderByTimestampAsc(String userId);
 
 }
