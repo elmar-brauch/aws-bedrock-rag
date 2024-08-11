@@ -14,7 +14,7 @@ public class ChatController {
     private final ChatService chatService;
 
     @PostMapping("/chat")
-    public String chat(@RequestBody ChatRequestDTO chatRequest) {
+    public String generatePost(@RequestBody ChatRequestDTO chatRequest) {
         log.debug("Following chat message with chatId {} received: {}", chatRequest.chatId(), chatRequest.message());
         var aiResponse = chatService.chat(chatRequest.message(), chatRequest.chatId());
         return aiResponse.getContent();
