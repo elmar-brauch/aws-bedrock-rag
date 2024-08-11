@@ -3,10 +3,12 @@ package de.bsi.chatbot.chat.llm;
 import de.bsi.chatbot.chat.conversation.ConversationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.bedrock.titan.BedrockTitanChatModel;
+import org.springframework.ai.azure.openai.AzureOpenAiChatModel;
+import org.springframework.ai.azure.openai.AzureOpenAiChatOptions;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
@@ -24,7 +26,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ChatService {
 
-    private final BedrockTitanChatModel chatModel;
+    private final AzureOpenAiChatModel chatModel;
     private final VectorStore vectorStore;
     private final ConversationService conversationService;
 
@@ -67,7 +69,7 @@ public class ChatService {
         log.debug("Starting new conversation {}", chatId);
         var conversationStartMessages = List.of(buildContextMessage(userMessage.getContent()), userMessage);
         conversationService.persistMessages(chatId, conversationStartMessages);
-        return new Prompt(conversationStartMessages);
+        return new Prompt(conversationStartMessages, buildOptions());
     }
 
     private Message buildContextMessage(String message) {
@@ -82,6 +84,13 @@ public class ChatService {
         var responseMessage = awsResponse.getResult().getOutput();
         conversationService.persistMessage(chatId, responseMessage);
         return responseMessage;
+    }
+
+    private ChatOptions buildOptions() {
+        return AzureOpenAiChatOptions.builder()
+                .withFunction("checkSaltwaterConnectionWithCityName")
+                .withFunction("checkSaltwaterConnectionWithPostalCode")
+                .build();
     }
 
 }
